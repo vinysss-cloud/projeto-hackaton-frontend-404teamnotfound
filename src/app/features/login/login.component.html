@@ -2,22 +2,22 @@
   <div class="login2">
     <img class="close-up-de-familia" src="/assets/close-up-de-familia-feliz-passando-um-tempo-juntos-10.png" />
     <div class="frame"></div>
-    <div class="login-sso">
+    <div class="login-card">
       <form class="frame2" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <div class="frame3">
           <div class="caixa-seguridade">
             <img class="caixa-logo" src="/assets/caixa-seguridade-vol-hor-positiva-10.png" />
           </div>
           <div class="entre-com-seu-login">
-            Entre com seu login e senha para acessar sua área pessoal.
+            Entre com sua matrícula e senha para acessar o CAIXA HUB.
           </div>
         </div>
-        
+
         <div class="dsc-input">
           <div class="label-line">
             <div class="label-additional-info">
               <div class="label2">
-                <div class="label-standard">Usuário</div>
+                <div class="label-standard">Matrícula</div>
               </div>
             </div>
           </div>
@@ -25,7 +25,7 @@
             <div class="left-icon">
               <img class="person" src="/assets/person0.svg" />
             </div>
-            <input type="text" formControlName="usuario" class="input-field" placeholder="Ex: C000000" />
+            <input type="text" formControlName="usuario" class="input-field" placeholder="Ex: C000404" />
           </div>
           <div class="error-msg" *ngIf="loginForm.get('usuario')?.invalid && loginForm.get('usuario')?.touched">
             Campo obrigatório

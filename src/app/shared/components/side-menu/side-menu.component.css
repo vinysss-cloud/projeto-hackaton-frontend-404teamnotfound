@@ -56,3 +56,230 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.menu-button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+}
+
+.menu-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.file-input {
+  display: none;
+}
+
+.export-icon {
+  color: var(--dsc-color-bg-highlight-5);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.feedback-ambiente {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  max-width: 360px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #e9f5ff;
+  border-left: 5px solid var(--dsc-color-bg-highlight-5);
+  box-shadow: 0 12px 30px rgba(0, 57, 112, 0.18);
+  color: var(--dsc-color-bg-highlight-5);
+  font-family: var(--font-family-base);
+  font-size: var(--dsc-font-size-micro);
+  font-weight: var(--dsc-font-weight-600);
+  line-height: 145%;
+  animation: feedbackIn 0.18s ease-out;
+}
+
+.feedback-ambiente.feedback-erro {
+  background: #fff3f3;
+  border-left-color: #b3261e;
+  color: #b3261e;
+}
+
+@keyframes feedbackIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.menu-button-combined .item {
+  white-space: normal;
+}
+
+.ambiente-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 26, 52, 0.48);
+  backdrop-filter: blur(2px);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.ambiente-modal {
+  width: min(520px, calc(100vw - 32px));
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 39, 82, 0.24);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(0, 86, 179, 0.12);
+}
+
+.ambiente-modal-topo {
+  background: linear-gradient(135deg, #005ca9 0%, #0b67bb 100%);
+  color: #ffffff;
+  padding: 28px 28px 22px;
+}
+
+.ambiente-modal-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.ambiente-modal-topo h3 {
+  margin: 0 0 8px;
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.ambiente-modal-topo p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  opacity: 0.96;
+}
+
+.ambiente-modal-fechar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ambiente-modal-acoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 24px 28px 12px;
+}
+
+.ambiente-acao-card {
+  border: 1px solid #d5e2f3;
+  background: linear-gradient(180deg, #f9fbfe 0%, #f2f7fc 100%);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.ambiente-acao-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 86, 179, 0.12);
+  border-color: #9dc2ea;
+}
+
+.ambiente-acao-card:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.ambiente-acao-icone {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #e7f0fb;
+  color: #005ca9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.ambiente-acao-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ambiente-acao-conteudo strong {
+  color: #17314d;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.ambiente-acao-conteudo small {
+  color: #5f7185;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ambiente-modal-rodape {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 28px 24px;
+}
+
+.ambiente-btn-secundario {
+  min-width: 112px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #b8cce3;
+  background: #ffffff;
+  color: #005ca9;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ambiente-btn-secundario:hover {
+  background: #f4f9ff;
+}
+
+@media (max-width: 640px) {
+  .ambiente-modal-acoes {
+    grid-template-columns: 1fr;
+  }
+
+  .ambiente-modal-topo h3 {
+    font-size: 24px;
+  }
+
+  .ambiente-modal {
+    width: min(94vw, 520px);
+  }
+}

@@ -2,26 +2,35 @@
   <div class="header-fav">
     <div class="title">Favoritos & Anotações</div>
   </div>
-  
+
   <div class="section">
     <div class="section-title">LINKS</div>
-    <div class="links-list">
-      <div class="link-item">SIAC — Abertura de Conta</div>
-      <div class="link-item">Consulta FGTS</div>
-      <div class="link-item">SISMN — Normativo</div>
-      <div class="link-item">Sistema de Habitação</div>
+    <div class="links-list" *ngIf="favoritos.length; else linksFallback">
+      <div class="link-item" *ngFor="let favorito of favoritos">
+        {{ favorito.titulo }}
+      </div>
     </div>
+    <ng-template #linksFallback>
+      <div class="links-list">
+        <div class="link-item" *ngFor="let link of fallbackLinks">{{ link }}</div>
+      </div>
+    </ng-template>
   </div>
 
   <div class="divider"></div>
 
   <div class="section">
     <div class="section-title">ANOTAÇÕES</div>
-    <div class="notes-list">
-      <div class="note-item">Verificar doc. contrato — cliente Pedro</div>
-      <div class="note-item">Agendar follow-up — Maria</div>
-      <div class="note-item">Revisar normativo 045/2025</div>
+    <div class="notes-list" *ngIf="anotacoes.length; else notasFallback">
+      <div class="note-item" *ngFor="let anotacao of anotacoes">
+        {{ anotacao.titulo }}<span *ngIf="anotacao.descricao"> — {{ anotacao.descricao }}</span>
+      </div>
     </div>
+    <ng-template #notasFallback>
+      <div class="notes-list">
+        <div class="note-item" *ngFor="let nota of fallbackNotas">{{ nota }}</div>
+      </div>
+    </ng-template>
   </div>
 
   <div class="images-container">

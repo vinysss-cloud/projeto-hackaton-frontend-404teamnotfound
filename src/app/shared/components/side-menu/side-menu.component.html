@@ -1,4 +1,12 @@
 <div class="side-menu">
+  <input
+    #inputImportarAmbiente
+    class="file-input"
+    type="file"
+    accept=".txt,text/plain,application/json"
+    (change)="importarAmbiente($event)"
+  />
+
   <div class="itens-do-menu">
     <div class="dsc-menu-item" routerLink="/dashboard" routerLinkActive="active-menu">
       <div class="icon-slot">
@@ -14,12 +22,18 @@
       <div class="item">Listar todos atalhos</div>
     </div>
     
-    <div class="dsc-menu-item disabled-item">
+    <button
+      class="dsc-menu-item menu-button menu-button-combined"
+      type="button"
+      (click)="abrirModalAmbiente()"
+      [disabled]="processandoArquivo()"
+      aria-haspopup="dialog"
+      [attr.aria-expanded]="mostrarModalAmbiente()">
       <div class="icon-slot">
         <img class="icon4" src="/assets/icon3.svg" />
       </div>
-      <div class="item">Importar Ambiente</div>
-    </div>
+      <div class="item">{{ processandoArquivo() ? 'Processando ambiente...' : 'Importar / Exportar Ambiente' }}</div>
+    </button>
     
     <div class="dsc-menu-item" routerLink="/rotinas" routerLinkActive="active-menu">
       <div class="icon-slot">
@@ -27,5 +41,70 @@
       </div>
       <div class="item">Ver todas rotinas</div>
     </div>
+  </div>
+
+  <div
+    class="ambiente-modal-overlay"
+    *ngIf="mostrarModalAmbiente()"
+    (click)="fecharModalAmbiente()">
+    <div
+      class="ambiente-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ambiente-modal-titulo"
+      (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="ambiente-modal-fechar"
+        aria-label="Fechar opções de ambiente"
+        (click)="fecharModalAmbiente()">
+        ×
+      </button>
+
+      <div class="ambiente-modal-topo">
+        <span class="ambiente-modal-tag">MEU AMBIENTE</span>
+        <h3 id="ambiente-modal-titulo">Escolha uma ação</h3>
+        <p>Você pode importar um arquivo recebido ou exportar suas rotinas e atalhos atuais.</p>
+      </div>
+
+      <div class="ambiente-modal-acoes">
+        <button
+          type="button"
+          class="ambiente-acao-card"
+          (click)="abrirImportacao()"
+          [disabled]="processandoArquivo()">
+          <span class="ambiente-acao-icone">↥</span>
+          <span class="ambiente-acao-conteudo">
+            <strong>Importar ambiente</strong>
+            <small>Seleciona um arquivo .txt do computador e adiciona os dados sem sobrescrever.</small>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="ambiente-acao-card"
+          (click)="exportarAmbiente()"
+          [disabled]="processandoArquivo()">
+          <span class="ambiente-acao-icone">↧</span>
+          <span class="ambiente-acao-conteudo">
+            <strong>Exportar ambiente</strong>
+            <small>Gera um arquivo .txt com as rotinas e atalhos do usuário atual.</small>
+          </span>
+        </button>
+      </div>
+
+      <div class="ambiente-modal-rodape">
+        <button type="button" class="ambiente-btn-secundario" (click)="fecharModalAmbiente()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="feedback-ambiente"
+    *ngIf="mensagem()"
+    [class.feedback-erro]="tipoMensagem() === 'erro'"
+    role="status"
+    aria-live="polite">
+    {{ mensagem() }}
   </div>
 </div>

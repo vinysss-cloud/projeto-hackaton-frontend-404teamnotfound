@@ -10,32 +10,42 @@
           <div class="meu-ambiente-minhas-rotinas">
             Meu Ambiente - minhas rotinas
           </div>
+
+          <div *ngIf="loading">Carregando dados do backend...</div>
+          <div class="error-msg global-error" *ngIf="error">{{ error }}</div>
+
           <div class="frame-51">
             <div class="frame-8">
               <div class="frame-50">
-                <app-rotina-card *ngFor="let rotina of rotinas().slice(0,4)" [rotina]="rotina"></app-rotina-card>
+                <app-rotina-card *ngFor="let rotina of rotinasDestaque().slice(0,4)" [rotina]="rotina" (abrir)="abrirAgrupamentoRotina($event)"></app-rotina-card>
               </div>
             </div>
             <div class="frame-9">
               <div class="frame-50">
-                <app-rotina-card *ngFor="let rotina of rotinas().slice(4,8)" [rotina]="rotina"></app-rotina-card>
+                <app-rotina-card *ngFor="let rotina of rotinasDestaque().slice(4,8)" [rotina]="rotina" (abrir)="abrirAgrupamentoRotina($event)"></app-rotina-card>
               </div>
             </div>
             <div class="frame-81">
               <div class="dsc-button" (click)="openModal()">
-                <div class="label-button">Acrescentar nova rotina</div>
+                <div class="label-button">Definir destaques</div>
               </div>
             </div>
           </div>
         </div>
-        <app-acessos-recentes></app-acessos-recentes>
+        <app-acessos-recentes [recentes]="acessosRecentes()"></app-acessos-recentes>
       </div>
       <app-footer></app-footer>
     </div>
     <div class="painel-direito">
-      <app-favoritos-anotacoes></app-favoritos-anotacoes>
+      <app-favoritos-anotacoes [favoritos]="favoritos()" [anotacoes]="anotacoes()"></app-favoritos-anotacoes>
     </div>
   </div>
 </div>
 
-<app-adicionar-rotina-modal *ngIf="showModal" (close)="closeModal()"></app-adicionar-rotina-modal>
+<app-definir-destaques-modal
+  *ngIf="showModal"
+  [rotinas]="rotinas()"
+  [selectedKeys]="destaquesKeys()"
+  (save)="salvarDestaques($event)"
+  (close)="closeModal()"
+></app-definir-destaques-modal>

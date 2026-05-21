@@ -33,16 +33,17 @@
               <textarea class="textarea-field" formControlName="descricao" placeholder="Descrição, contexto de uso ou lembrete sobre este acesso..."></textarea>
             </div>
 
+            <div class="modal-error" *ngIf="error">{{ error }}</div>
           </form>
         </div>
       </div>
       
       <div class="frame-65">
         <div class="frame-59">
-          <button class="dsc-button" [disabled]="loading" (click)="onSave()">
+          <button type="button" class="dsc-button" [disabled]="loading" (click)="onSave()">
             <div class="label">{{ loading ? 'Salvando...' : 'Salvar' }}</div>
           </button>
-          <button class="dsc-button2" [disabled]="loading" (click)="onCancel()">
+          <button type="button" class="dsc-button2" [disabled]="loading" (click)="onCancel()">
             <div class="label">Cancelar</div>
           </button>
         </div>

@@ -1,45 +1,151 @@
 <div class="tela-principal-desktop">
   <app-header></app-header>
+
   <div class="page">
-    <div class="frame-66">
+    <aside class="frame-66" aria-label="Menu lateral">
       <app-side-menu></app-side-menu>
-    </div>
-    <div class="content">
-      <div class="main-column">
-        
-        <div class="atalhos-header">
-          <div class="titulo-pagina">Todos os Atalhos</div>
-          <div class="dsc-button">
-            <div class="label-button">Acrescentar novo atalho</div>
+    </aside>
+
+    <main class="content" aria-label="Conteúdo principal">
+      <section class="main-column">
+        <div class="figma-card">
+          <div class="card-title">Todos Sites</div>
+
+          <div class="consulta-bar" role="search" aria-label="Consultar atalhos">
+            <input
+              type="search"
+              class="consulta-input"
+              placeholder="Ex.: abrir conta, consultar FGTS, habitação..."
+              [ngModel]="termoConsulta()"
+              (ngModelChange)="termoConsulta.set($event)"
+              (keyup.enter)="consultar()"
+              aria-label="Digite o termo de consulta" />
+
+            <button type="button" class="btn-consultar" (click)="consultar()">
+              Consultar
+            </button>
+
+            <button
+              *ngIf="termoConsulta()"
+              type="button"
+              class="btn-limpar"
+              (click)="limparConsulta()"
+              aria-label="Limpar consulta">
+              Limpar
+            </button>
           </div>
+
+          <div class="status-line status-loading" *ngIf="carregando()">Carregando/gravando informações...</div>
+          <div class="status-line status-error" *ngIf="erro()">{{ erro() }}</div>
+
+          <div class="table-plan-1" aria-label="Lista de atalhos cadastrados">
+            <div class="table-header-component" role="row">
+              <div class="table-header-cell-nome"><div class="nome">Nome</div></div>
+              <div class="table-header-cell-endere-o-url"><div class="endere-o-url">Endereço (URL)</div></div>
+              <div class="table-header-cell-fixado"><div class="fixado">Fixado</div></div>
+              <div class="table-header-cell-observa-es"><div class="observa-es">Observações</div></div>
+              <div class="table-header-cell-excluir"><div class="excluir">Excluir</div></div>
+            </div>
+
+            <div class="empty-state" *ngIf="atalhosFiltrados().length === 0">
+              Nenhum atalho encontrado para a consulta informada.
+            </div>
+
+            <div class="table-row-instance" *ngFor="let atalho of atalhosPaginados()" role="row">
+              <div class="table-cell-nome"><div class="nome2">{{ atalho.nome }}</div></div>
+              <div class="table-cell-endere-o-url">
+                <a class="endere-o-url2" [href]="atalho.url" target="_blank" rel="noopener noreferrer">{{ atalho.url }}</a>
+              </div>
+              <button class="table-cell-fixado action-cell" type="button" (click)="togglePin(atalho.id)" [disabled]="carregando()" [attr.aria-label]="atalho.fixado ? 'Desafixar atalho' : 'Fixar atalho'">
+                <span class="pin-icon" [class.pin-active]="atalho.fixado">{{ atalho.fixado ? '📌' : '●' }}</span>
+              </button>
+              <div class="table-cell-observa-es"><div class="observa-es2">{{ atalho.observacoes }}</div></div>
+              <button class="table-cell-excluir action-cell" type="button" (click)="deleteAtalho(atalho.id)" [disabled]="carregando()" aria-label="Excluir atalho">
+                <span class="trash-icon">🗑</span>
+              </button>
+            </div>
+          </div>
+
+            <div class="pagination-bar" *ngIf="totalItens() > 0" aria-label="Paginação da lista de atalhos">
+              <div class="pagination-summary">
+                Exibindo
+                <strong>{{ inicioExibicao() }}-{{ fimExibicao() }}</strong>
+                de
+                <strong>{{ totalItens() }}</strong>
+                atalhos
+              </div>
+
+              <nav class="pagination-controls" aria-label="Navegação por páginas">
+                <button
+                  type="button"
+                  class="pagination-button pagination-button-wide"
+                  (click)="paginaAnterior()"
+                  [disabled]="paginaAtual() === 1"
+                  aria-label="Página anterior">
+                  Anterior
+                </button>
+
+                <button
+                  *ngFor="let pagina of paginasVisiveis()"
+                  type="button"
+                  class="pagination-button"
+                  [class.pagination-button-active]="paginaAtual() === pagina"
+                  (click)="irParaPagina(pagina)"
+                  [attr.aria-current]="paginaAtual() === pagina ? 'page' : null">
+                  {{ pagina }}
+                </button>
+
+                <button
+                  type="button"
+                  class="pagination-button pagination-button-wide"
+                  (click)="proximaPagina()"
+                  [disabled]="paginaAtual() === totalPaginas()"
+                  aria-label="Próxima página">
+                  Próxima
+                </button>
+              </nav>
+            </div>
         </div>
 
-        <div class="table-plan-1">
-          <div class="table-header-component">
-            <div class="table-header-cell-nome"><div class="nome">Nome</div></div>
-            <div class="table-header-cell-endere-o-url"><div class="endere-o-url">Endereço (URL)</div></div>
-            <div class="table-header-cell-fixado"><div class="fixado">Fixado</div></div>
-            <div class="table-header-cell-observa-es"><div class="observa-es">Observações</div></div>
-            <div class="table-header-cell-excluir"><div class="excluir">Excluir</div></div>
+        <button type="button" class="btn-cadastrar" (click)="abrirCadastro()" *ngIf="!mostrarFormulario()">
+          Cadastrar novo atalho
+        </button>
+
+        <section class="cadastro-card" *ngIf="mostrarFormulario()" aria-label="Cadastro de novo atalho">
+          <div class="cadastro-title">Cadastrar novo atalho</div>
+
+          <div class="cadastro-grid">
+            <label class="field">
+              <span>Nome</span>
+              <input type="text" [(ngModel)]="novoAtalho.nome" placeholder="Ex.: SIAC — Abertura de Conta" />
+            </label>
+
+            <label class="field">
+              <span>Endereço (URL)</span>
+              <input type="url" [(ngModel)]="novoAtalho.url" placeholder="https://sistema.caixa" />
+            </label>
+
+            <label class="field field-full">
+              <span>Observações</span>
+              <input type="text" [(ngModel)]="novoAtalho.observacoes" placeholder="Descrição curta sobre o uso do atalho" />
+            </label>
+
+            <label class="checkbox-field">
+              <input type="checkbox" [(ngModel)]="novoAtalho.fixado" />
+              <span>Fixar na lista principal</span>
+            </label>
           </div>
-          
-          <div class="table-row-instance" *ngFor="let atalho of atalhos()">
-            <div class="table-cell-nome"><div class="nome2">{{ atalho.nome }}</div></div>
-            <div class="table-cell-endere-o-url">
-              <a class="endere-o-url2" [href]="atalho.url" target="_blank">{{ atalho.url }}</a>
-            </div>
-            <div class="table-cell-fixado" (click)="togglePin(atalho.id)">
-              <div class="fixado2 cursor-pointer">{{ atalho.fixado ? '📌' : '📍' }}</div>
-            </div>
-            <div class="table-cell-observa-es"><div class="observa-es2">{{ atalho.observacoes }}</div></div>
-            <div class="table-cell-excluir" (click)="deleteAtalho(atalho.id)">
-              <div class="excluir2 cursor-pointer">🗑️</div>
-            </div>
+
+          <div class="cadastro-actions">
+            <button type="button" class="btn-secundario" (click)="cancelarCadastro()">Cancelar</button>
+            <button type="button" class="btn-consultar" (click)="salvarAtalho()" [disabled]="carregando() || !novoAtalho.nome.trim() || !novoAtalho.url.trim()">
+              {{ carregando() ? 'Salvando...' : 'Salvar atalho' }}
+            </button>
           </div>
-        </div>
-        
-      </div>
+        </section>
+      </section>
+
       <app-footer></app-footer>
-    </div>
+    </main>
   </div>
 </div>

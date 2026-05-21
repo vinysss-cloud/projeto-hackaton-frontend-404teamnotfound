@@ -1,0 +1,81 @@
+<div class="modal-backdrop" (click)="onCancel()">
+  <section class="destaques-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div>
+        <p class="eyebrow">Meu ambiente</p>
+        <h2 id="modal-title">Definir destaques</h2>
+        <p class="header-description">Escolha até 8 rotinas para aparecerem no topo da sua tela inicial.</p>
+      </div>
+
+      <button class="close-btn" type="button" aria-label="Fechar modal" (click)="onCancel()">✕</button>
+    </header>
+
+    <div class="summary-card">
+      <div class="summary-icon">★</div>
+      <div>
+        <strong>{{ totalSelecionadas }}/{{ limiteDestaques }} selecionadas</strong>
+        <span>Organize seus acessos principais sem alterar as rotinas salvas.</span>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <label class="search-box">
+        <span>Consultar rotina</span>
+        <input
+          type="search"
+          [value]="termoBusca"
+          placeholder="Buscar por nome, categoria ou descrição"
+          (input)="onSearch($any($event.target).value)"
+        />
+      </label>
+
+      <button class="ghost-btn" type="button" (click)="limparSelecao()" [disabled]="totalSelecionadas === 0">
+        Limpar seleção
+      </button>
+    </div>
+
+    <div class="lista-rotinas" *ngIf="rotinasFiltradas.length; else vazio">
+      <button
+        type="button"
+        class="rotina-option"
+        *ngFor="let rotina of rotinasPaginadas"
+        [class.selected]="isSelecionada(rotina)"
+        (click)="toggleRotina(rotina)"
+      >
+        <span class="rotina-icon">
+          <img [src]="'/assets/' + rotina.icone" alt="" />
+        </span>
+
+        <span class="rotina-info">
+          <strong>{{ rotina.titulo }}</strong>
+          <small>{{ rotina.descricao }}</small>
+          <em>{{ rotina.categoria || 'Rotina do usuário' }}</em>
+        </span>
+
+        <span class="check-indicator" [attr.aria-label]="isSelecionada(rotina) ? 'Selecionada' : 'Não selecionada'">
+          {{ isSelecionada(rotina) ? '✓' : '+' }}
+        </span>
+      </button>
+    </div>
+
+    <ng-template #vazio>
+      <div class="empty-state">
+        <strong>Nenhuma rotina encontrada</strong>
+        <span>Tente buscar por outro nome, categoria ou descrição.</span>
+      </div>
+    </ng-template>
+
+    <div class="pagination" *ngIf="rotinasFiltradas.length > pageSize">
+      <button type="button" (click)="paginaAnterior()" [disabled]="!podeVoltar">Anterior</button>
+      <span>Página {{ paginaAtual }} de {{ totalPaginas }}</span>
+      <button type="button" (click)="proximaPagina()" [disabled]="!podeAvancar">Próxima</button>
+    </div>
+
+    <div class="modal-error" *ngIf="error">{{ error }}</div>
+
+    <footer class="modal-actions">
+      <button type="button" class="secondary-btn" (click)="onCancel()">Cancelar</button>
+      <button type="button" class="primary-btn" (click)="onSave()">Salvar destaques</button>
+    </footer>
+  </section>
+</div>

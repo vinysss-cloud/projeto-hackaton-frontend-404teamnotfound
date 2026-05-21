@@ -1,9 +1,9 @@
 <div class="card-recentes">
   <div class="acessos-recentes">Acessos recentes</div>
   <div class="frame-92">
-    <div class="card-acesso" *ngFor="let item of recentes">
+    <div class="card-acesso" *ngFor="let item of itens">
       <div class="frame-48">
-        <img class="icon" [src]="'/assets/' + item.icone" />
+        <img class="icon" [src]="'/assets/' + normalizarIcone(item.icone)" />
       </div>
       <div class="titulo-acesso">{{ item.titulo }}</div>
     </div>

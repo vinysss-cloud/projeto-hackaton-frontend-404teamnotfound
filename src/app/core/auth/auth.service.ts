@@ -1,59 +1,106 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, of, tap, delay } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
+
+export interface UsuarioLogado {
+  id: number;
+  matricula: string;
+  nomeExibicao: string;
+  primeiroAcesso?: boolean;
+  ativo?: boolean;
+  dataCriacao?: string;
+  ultimoAcesso?: string;
+}
+
+interface ApiResponse<T> {
+  sucesso: boolean;
+  mensagem: string;
+  dados: T;
+  timestamp: string;
+}
+
+interface AuthResponse {
+  autenticado: boolean;
+  usuarioCriado: boolean;
+  mensagem: string;
+  usuario: UsuarioLogado;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private loggedIn = signal<boolean>(false);
-  private tokenKey = 'sicas_auth_token';
+
+  private readonly usuarioKey = 'sicas_usuario';
+  private readonly usuarioIdKey = 'sicas_usuario_id';
 
   constructor(private http: HttpClient, private router: Router) {
-    this.checkInitialToken();
+    this.checkInitialSession();
   }
 
   get isLoggedIn() {
     return this.loggedIn();
   }
 
-  private checkInitialToken() {
-    const token = localStorage.getItem(this.tokenKey);
-    if (token) {
-      this.loggedIn.set(true);
+  get usuarioAtual(): UsuarioLogado | null {
+    const raw = localStorage.getItem(this.usuarioKey);
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(raw) as UsuarioLogado;
+    } catch {
+      this.logout(false);
+      return null;
     }
   }
 
-  login(usuario: string, senha: string): Observable<any> {
-    if (environment.useMock) {
-      // Mock login
-      return of({ token: 'mock-jwt-token-12345' }).pipe(
-        delay(1000), // Simulate network delay
-        tap(response => {
-          localStorage.setItem(this.tokenKey, response.token);
-          this.loggedIn.set(true);
-          this.router.navigate(['/dashboard']);
-        })
-      );
-    } else {
-      // Real API call
-      return this.http.post<any>(`${environment.apiUrl}/auth/login`, { usuario, senha }).pipe(
-        tap(response => {
-          if (response && response.token) {
-            localStorage.setItem(this.tokenKey, response.token);
-            this.loggedIn.set(true);
-            this.router.navigate(['/dashboard']);
-          }
-        })
-      );
-    }
+  get usuarioId(): number | null {
+    const id = localStorage.getItem(this.usuarioIdKey);
+    return id ? Number(id) : null;
   }
 
-  logout() {
-    localStorage.removeItem(this.tokenKey);
+  private checkInitialSession() {
+    const usuario = localStorage.getItem(this.usuarioKey);
+    const usuarioId = localStorage.getItem(this.usuarioIdKey);
+    this.loggedIn.set(!!usuario && !!usuarioId);
+  }
+
+  login(matricula: string, senha: string): Observable<ApiResponse<AuthResponse>> {
+    return this.http.post<ApiResponse<AuthResponse>>(`${environment.apiUrl}/auth/login`, {
+      matricula,
+      senha,
+      nomeExibicao: matricula
+    }).pipe(
+      tap(response => this.persistirSessao(response))
+    );
+  }
+
+  private persistirSessao(response: ApiResponse<AuthResponse>) {
+    const dados = response?.dados;
+
+    if (!response?.sucesso || !dados?.autenticado || !dados?.usuario?.id) {
+      throw new Error(response?.mensagem || 'Falha na autenticação.');
+    }
+
+    localStorage.setItem(this.usuarioKey, JSON.stringify(dados.usuario));
+    localStorage.setItem(this.usuarioIdKey, String(dados.usuario.id));
+
+    this.loggedIn.set(true);
+    this.router.navigate(['/dashboard']);
+  }
+
+  logout(navigate = true) {
+    localStorage.removeItem(this.usuarioKey);
+    localStorage.removeItem(this.usuarioIdKey);
     this.loggedIn.set(false);
-    this.router.navigate(['/login']);
+
+    if (navigate) {
+      this.router.navigate(['/login']);
+    }
   }
 }

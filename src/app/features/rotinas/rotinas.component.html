@@ -1,36 +1,276 @@
 <div class="tela-principal-desktop">
   <app-header></app-header>
+
   <div class="page">
     <div class="frame-66">
       <app-side-menu></app-side-menu>
     </div>
+
     <div class="content">
       <div class="main-column">
+        <ng-container *ngIf="!rotinaSelecionada(); else detalheRotina">
+          <section class="rotinas-panel" aria-labelledby="titulo-rotinas">
+            <div class="rotinas-title-bar">
+              <h1 id="titulo-rotinas">Todas Rotinas</h1>
+              <p>Selecione uma rotina para ver o agrupamento de links e atalhos salvos.</p>
+            </div>
 
-        <div class="rotinas-header">
-          <div class="titulo-pagina">Todas as Rotinas</div>
-        </div>
+            <div class="consulta-bar" role="search" aria-label="Consultar rotinas">
+              <input
+                type="text"
+                [ngModel]="termoBusca()"
+                (ngModelChange)="termoBusca.set($event); consultar()"
+                placeholder="Ex.: abrir conta, consultar FGTS, habitação..."
+                aria-label="Digite um termo para consultar rotinas"
+              />
 
-        <div class="table-plan-1">
-          <div class="table-header-component">
-            <div class="table-header-cell icone-col"><div class="header-text">Ícone</div></div>
-            <div class="table-header-cell nome-col"><div class="header-text">Nome</div></div>
-            <div class="table-header-cell desc-col"><div class="header-text">Descrição</div></div>
-          </div>
+              <button type="button" class="btn-consultar" (click)="consultar()">
+                Consultar
+              </button>
 
-          <div class="table-row-instance" *ngFor="let rotina of rotinas()">
-            <div class="table-cell icone-col">
-              <div class="icon-circle">
-                <img class="icon-img" [src]="'/assets/' + rotina.icone" />
+              <button
+                *ngIf="termoBusca()"
+                type="button"
+                class="btn-limpar"
+                (click)="limparConsulta()"
+                aria-label="Limpar consulta"
+              >
+                Limpar
+              </button>
+            </div>
+
+            <div *ngIf="loading" class="feedback info">
+              Carregando rotinas...
+            </div>
+
+            <div *ngIf="error" class="feedback alerta">
+              {{ error }}
+            </div>
+
+            <div class="rotinas-grid" *ngIf="rotinasPaginadas().length > 0; else semRotinas">
+              <article
+                class="rotina-card"
+                *ngFor="let rotina of rotinasPaginadas()"
+                tabindex="0"
+                (click)="abrirRotina(rotina)"
+                (keyup.enter)="abrirRotina(rotina)"
+                [attr.aria-label]="'Abrir agrupamento de links da rotina ' + rotina.titulo"
+              >
+                <button
+                  type="button"
+                  class="pin-button"
+                  title="Fixar rotina"
+                  aria-label="Fixar rotina"
+                  (click)="fixarRotina($event)"
+                >
+                  <img src="/assets/push-pin1.svg" alt="" />
+                </button>
+
+                <div class="icon-circle">
+                  <img class="icon-img" [src]="'/assets/' + rotina.icone" alt="" />
+                </div>
+
+                <div class="rotina-info">
+                  <h2>{{ rotina.titulo }}</h2>
+                  <p>{{ rotina.descricao }}</p>
+                </div>
+
+                <span class="card-arrow" aria-hidden="true">›</span>
+              </article>
+            </div>
+
+            <ng-template #semRotinas>
+              <div class="empty-state">
+                Nenhuma rotina encontrada para a consulta informada.
+              </div>
+            </ng-template>
+
+            <div class="paginacao" *ngIf="totalItens() > itensPorPagina">
+              <div class="paginacao-info">
+                Exibindo {{ inicioExibicao() }}-{{ fimExibicao() }} de {{ totalItens() }} rotinas
+              </div>
+
+              <div class="paginacao-controles" aria-label="Paginação de rotinas">
+                <button type="button" (click)="paginaAnterior()" [disabled]="paginaAtual() === 1">
+                  Anterior
+                </button>
+
+                <button
+                  type="button"
+                  *ngFor="let pagina of paginasVisiveis()"
+                  class="pagina-numero"
+                  [class.ativa]="pagina === paginaAtual()"
+                  (click)="irParaPagina(pagina)"
+                  [attr.aria-current]="pagina === paginaAtual() ? 'page' : null"
+                >
+                  {{ pagina }}
+                </button>
+
+                <button type="button" (click)="proximaPagina()" [disabled]="paginaAtual() === totalPaginas()">
+                  Próxima
+                </button>
               </div>
             </div>
-            <div class="table-cell nome-col"><div class="cell-text bold">{{ rotina.titulo }}</div></div>
-            <div class="table-cell desc-col"><div class="cell-text">{{ rotina.descricao }}</div></div>
-          </div>
-        </div>
+          </section>
 
+          <button type="button" class="btn-adicionar-rotina" (click)="openModal()">
+            Acrescentar nova rotina
+          </button>
+        </ng-container>
+
+        <ng-template #detalheRotina>
+          <section class="rotina-detalhe" *ngIf="rotinaSelecionada() as rotina" aria-labelledby="titulo-detalhe-rotina">
+            <header class="detalhe-header">
+              <div>
+                <span class="breadcrumb">Conteúdo #INTERNO.TODOS</span>
+                <h1 id="titulo-detalhe-rotina">{{ rotina.titulo | uppercase }}</h1>
+              </div>
+
+              <button type="button" class="btn-voltar" (click)="voltarParaRotinas()" aria-label="Voltar para lista de rotinas">
+                Voltar
+              </button>
+            </header>
+
+            <div class="descricao-card">
+              <div class="descricao-title">Descrição:</div>
+              <div class="descricao-box">
+                <div class="check-line">
+                  <span aria-hidden="true">✓</span>
+                  <p>{{ rotina.descricao || 'Rotina cadastrada pelo usuário para agrupar acessos, links e observações importantes.' }}</p>
+                </div>
+                <div class="check-line">
+                  <span aria-hidden="true">✓</span>
+                  <p>Use esta tela para organizar atalhos, detalhes e acessos relacionados a esta rotina.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="detalhe-actions">
+              <button type="button" class="btn-adicionar-rotina" (click)="abrirModalAtalho()">
+                Acrescentar novo atalho
+              </button>
+
+              <div class="consulta-atalho" role="search" aria-label="Consultar atalhos da rotina">
+                <input
+                  type="search"
+                  [ngModel]="termoAtalho()"
+                  (ngModelChange)="termoAtalho.set($event)"
+                  (keyup.enter)="consultarAtalhos()"
+                  placeholder="Buscar atalho, URL ou observação..."
+                  aria-label="Buscar atalho dentro da rotina"
+                />
+                <button type="button" class="btn-consultar pequeno" (click)="consultarAtalhos()">Buscar</button>
+                <button *ngIf="termoAtalho()" type="button" class="btn-limpar" (click)="limparConsultaAtalhos()">Limpar</button>
+              </div>
+            </div>
+
+            <div class="atalhos-table" aria-label="Atalhos dentro da rotina selecionada">
+              <div class="atalhos-header" role="row">
+                <div>Nome</div>
+                <div>Endereço (URL)</div>
+                <div>Fixado</div>
+                <div>Observações</div>
+                <div>Excluir</div>
+              </div>
+
+              <div class="empty-state" *ngIf="atalhosFiltrados().length === 0">
+                Nenhum atalho encontrado nesta rotina.
+              </div>
+
+              <div
+                class="atalhos-row"
+                *ngFor="let atalho of atalhosPaginados(); trackBy: trackByAtalho"
+                role="row"
+                tabindex="0"
+                (click)="abrirAtalho(atalho)"
+                (keyup.enter)="abrirAtalho(atalho)"
+              >
+                <div class="atalho-nome">{{ atalho.nome }}</div>
+                <div class="atalho-url">{{ atalho.url }}</div>
+                <button type="button" class="table-action" (click)="alternarFixado($event, atalho)" [attr.aria-label]="atalho.fixado ? 'Desafixar atalho' : 'Fixar atalho'">
+                  <span [class.pin-active]="atalho.fixado">{{ atalho.fixado ? '📌' : '○' }}</span>
+                </button>
+                <div class="atalho-observacao">{{ atalho.observacoes }}</div>
+                <button type="button" class="table-action" (click)="excluirAtalho($event, atalho)" aria-label="Excluir atalho">
+                  🗑
+                </button>
+              </div>
+            </div>
+
+            <div class="paginacao detalhe-paginacao" *ngIf="totalAtalhos() > atalhosPorPagina">
+              <div class="paginacao-info">
+                Exibindo {{ inicioAtalhoExibicao() }}-{{ fimAtalhoExibicao() }} de {{ totalAtalhos() }} atalhos
+              </div>
+
+              <div class="paginacao-controles" aria-label="Paginação dos atalhos da rotina">
+                <button type="button" (click)="paginaAtalhoAnterior()" [disabled]="paginaAtalhoAtual() === 1">
+                  Anterior
+                </button>
+
+                <button
+                  type="button"
+                  *ngFor="let pagina of paginasAtalhosVisiveis()"
+                  class="pagina-numero"
+                  [class.ativa]="pagina === paginaAtalhoAtual()"
+                  (click)="irParaPaginaAtalho(pagina)"
+                  [attr.aria-current]="pagina === paginaAtalhoAtual() ? 'page' : null"
+                >
+                  {{ pagina }}
+                </button>
+
+                <button type="button" (click)="proximaPaginaAtalho()" [disabled]="paginaAtalhoAtual() === totalPaginasAtalhos()">
+                  Próxima
+                </button>
+              </div>
+            </div>
+          </section>
+        </ng-template>
       </div>
+
       <app-footer></app-footer>
     </div>
   </div>
+</div>
+
+<app-adicionar-rotina-modal *ngIf="showModal" (close)="closeModal()"></app-adicionar-rotina-modal>
+
+<div class="modal-backdrop" *ngIf="showAtalhoModal" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-atalho">
+  <section class="atalho-modal">
+    <header class="atalho-modal-header">
+      <div>
+        <span>Atalho da rotina</span>
+        <h2 id="titulo-modal-atalho">Adicionar atalho</h2>
+      </div>
+      <button type="button" class="modal-close" (click)="fecharModalAtalho()" aria-label="Fechar modal">×</button>
+    </header>
+
+    <div class="atalho-modal-body">
+      <label>
+        <span>Nome do atalho*</span>
+        <input type="text" [(ngModel)]="novoAtalho.nome" placeholder="Ex.: SIAC — Abertura de Conta" />
+      </label>
+
+      <label>
+        <span>Link ou sistema*</span>
+        <input type="text" [(ngModel)]="novoAtalho.url" placeholder="https:// ou nome do sistema interno" />
+      </label>
+
+      <label>
+        <span>Descrição e/ou informações importantes</span>
+        <textarea [(ngModel)]="novoAtalho.observacoes" rows="4" placeholder="Inclua contexto de uso, lembrete, documentos necessários ou observações..."></textarea>
+      </label>
+
+      <label class="checkbox-modal">
+        <input type="checkbox" [(ngModel)]="novoAtalho.fixado" />
+        <span>Marcar como fixado dentro desta rotina</span>
+      </label>
+    </div>
+
+    <footer class="atalho-modal-actions">
+      <button type="button" class="btn-limpar" (click)="fecharModalAtalho()">Cancelar</button>
+      <button type="button" class="btn-consultar" (click)="salvarAtalho()" [disabled]="!novoAtalho.nome.trim() || !novoAtalho.url.trim()">
+        Salvar atalho
+      </button>
+    </footer>
+  </section>
 </div>

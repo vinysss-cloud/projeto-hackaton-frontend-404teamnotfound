@@ -8,16 +8,17 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './adicionar-rotina-modal.component.html',
-  styleUrl: './adicionar-rotina-modal.component.css'
+  styleUrls: ['./adicionar-rotina-modal.component.css']
 })
 export class AdicionarRotinaModalComponent {
   @Output() close = new EventEmitter<void>();
-  
+
   rotinaForm: FormGroup;
   private fb = inject(FormBuilder);
   private rotinaService = inject(RotinaService);
 
   loading = false;
+  error = '';
 
   constructor() {
     this.rotinaForm = this.fb.group({
@@ -31,6 +32,7 @@ export class AdicionarRotinaModalComponent {
   onSave() {
     if (this.rotinaForm.valid) {
       this.loading = true;
+      this.error = '';
       this.rotinaService.adicionarRotina(this.rotinaForm.value).subscribe({
         next: () => {
           this.loading = false;
@@ -38,6 +40,7 @@ export class AdicionarRotinaModalComponent {
         },
         error: (err) => {
           this.loading = false;
+          this.error = err?.error?.mensagem || 'Não foi possível salvar a rotina. Verifique se você está logado e se o backend está ativo.';
           console.error('Error adding rotina', err);
         }
       });

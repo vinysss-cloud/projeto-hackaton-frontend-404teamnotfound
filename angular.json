@@ -23,7 +23,8 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public/assets",
+                "output": "/assets"
               }
             ],
             "styles": [
@@ -57,12 +58,15 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "sicas-hub:build"
+          },
           "configurations": {
             "production": {
-              "buildTarget": "sicas-hub:build:production"
+              "browserTarget": "sicas-hub:build:production"
             },
             "development": {
-              "buildTarget": "sicas-hub:build:development"
+              "browserTarget": "sicas-hub:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -81,7 +85,8 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "output": "/assets"
               }
             ],
             "styles": [
@@ -92,5 +97,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "7746e32d-9684-4f72-8b32-691ec19a8473"
   }
 }
