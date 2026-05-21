@@ -1,0 +1,120 @@
+# ============================================================================= #
+#             CAIXA DEVSECOPS - TEMPLATE DO WORKFLOW DE SEGURANÇA v1.0          #
+# ============================================================================= #
+# Este workflow é um modelo padrão para todos os desenvolvedores da Caixa.      #
+# Ele automatiza processos de segurança e gera insumos que auxiliam a equipe.   #
+# O CodeQL atua em três vertentes:                                              #
+# - Análise DAST do código                                                      #
+# - Análise de vazamento de senhas                                              #
+# - Análise de vulnerabilidates das dependências                                #
+# ============================================================================= #
+
+# ============================================================================= #
+# Nome do workflow para facilitar a identificação nas execuções                 #
+# ============================================================================= #
+
+name: Call CodeQL workflow Seguranca
+
+# ============================================================================= #
+# Nome dinâmico da execução, útil para rastreamento e auditoria                 #
+# ============================================================================= #
+
+run-name: Seguranca-__.
+
+# ========================================================================================================================== #
+# Eventos que disparam o workflow                                                                                            #
+# ========================================================================================================================== #
+# push              -> Executa automaticamente em push, de acordo com os filtros                                             #
+# branches          -> Filtro de execução. O workflow, no evento push, será executado apenas nas branches main e develop     #
+# paths-ignore      -> Filtro de execução. O workflow, no evento push, não será executado quando existir alteração           #
+#                   -> nos caminhos .github/** e no arquivo catalog-info.yaml                                                #
+# pull_request      -> Executa automaticamente em pull_requests, de acordo com os filtros                                    #
+# schedule          -> Executa o workflow automaticamente no horário definido pelo cron.                                     #
+# cron              -> Define o horário de execução para toda a segunda 1:00 am UTC.                                         #
+#                                                                                                                            #
+# Documentação de referência                                                                                                 #
+# https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow                    #
+# ========================================================================================================================== #
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths-ignore:
+      - '.github/**'
+      - 'catalog-info.yaml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths-ignore:
+      - '.github/**'
+      - 'catalog-info.yaml'
+  schedule:
+    - cron: "0 1 * * 1"
+
+# ============================================================================================================================ #
+# Permissões necessárias para o workflow interagir com o repositório de automação de CI/CD e serviços                          #
+# ============================================================================================================================ #
+# contents: read         -> Permite ler os arquivos do repositório                                                             #
+# security-events: write -> Permite registrar eventos de segurança                                                             #
+# packages: read         -> Permite ler pacotes (ex: npm, docker)                                                              #
+# actions: read          -> Permite ler ações do GitHub                                                                        #
+#                                                                                                                              #
+# Documentação de referência                                                                                                   #
+# https://docs.github.com/en/actions/tutorials/authenticate-with-github_token#modifying-the-permissions-for-the-github_token   #
+# ============================================================================================================================ #
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  packages: read
+
+# ====================================================================================================================================================== #
+# Definição dos jobs que serão executados                                                                                                                #
+# ====================================================================================================================================================== #
+# name: CodeQL                                                                        -> Nome do job, aparece na interface do GitHub Actions             #
+# uses: caixagithub/DevSecOps-Solutions/.github/workflows/codeql-pipelines.yaml@main  -> Template reutilizado                                            #
+# secrets: inherit                                                                    -> Herda os segredos definidos no repositório principal            #
+# with: DINAMICALLY_CREATE_SETTINGS_XML: false ou true                                -> Habilita ou desabilita criação de settings.xml do maven via     #
+#                                                                                        pipeline, necessário para repositórios Adapter com Java.        #
+# Documentação de referência                                                                                                                             #
+# https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-jobs                                                           #
+# https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows                                                                           #
+# ====================================================================================================================================================== #
+
+jobs:
+  disable-default-codeql-setup:
+    name: Disable default CodeQL setup
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - name: Disable default CodeQL setup if enabled
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STATE=$(gh api /repos/${{ github.repository }}/code-scanning/default-setup --jq '.state' 2>/dev/null || echo "not-configured")
+          if [ "$STATE" != "not-configured" ]; then
+            OUTPUT_FILE=$(mktemp)
+            trap 'rm -f "$OUTPUT_FILE"' EXIT
+            if ! gh api --method PATCH \
+              /repos/${{ github.repository }}/code-scanning/default-setup \
+              -f state=not-configured >"$OUTPUT_FILE" 2>&1; then
+              HTTP_STATUS=$(tail -n 1 "$OUTPUT_FILE" | jq -r 'try .status // empty' 2>/dev/null || true)
+              if [ "$HTTP_STATUS" = "403" ] || grep -qE "(HTTP 403|403 Forbidden)" "$OUTPUT_FILE"; then
+                echo "::warning::Unable to disable default CodeQL setup with GITHUB_TOKEN (HTTP 403). Continuing with existing configuration."
+              else
+                cat "$OUTPUT_FILE"
+                exit 1
+              fi
+            fi
+          fi
+
+  CodeQL:
+    name: CodeQL
+    needs: disable-default-codeql-setup
+    uses: caixasandbox/DevSecOps-Solutions/.github/workflows/codeql-pipelines.yaml@main
+    secrets: inherit
